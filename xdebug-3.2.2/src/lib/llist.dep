@@ -1,0 +1,3 @@
+src/lib/llist.lo: \
+  /Users/pierre/Documents/Formation/Projet_8/OC-PHP-P8-S6.3/xdebug-3.2.2/src/lib/llist.c \
+  /Users/pierre/Documents/Formation/Projet_8/OC-PHP-P8-S6.3/xdebug-3.2.2/src/lib/llist.h
