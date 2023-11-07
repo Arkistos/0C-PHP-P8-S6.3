@@ -7,18 +7,23 @@ use App\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 class TaskTest extends TestCase{
-    public function testDefault(){
+    public function testTask(){
         $task = new Task();
         $task->setTitle('Task1');
-        
-        $this->assertSame('Task1', $task->getTitle());
-    }
-
-    public function testTaskLiaisonUser(){
-        $task = new Task();
+        $task->setContent('test task');
+        $task->setDone(true);
         $user = new User();
         $task->setUser($user);
+        
+        
+        $this->assertSame('Task1', $task->getTitle());
+        $this->assertSame('test task', $task->getContent());
+        $this->assertSame(true, $task->isDone());
+
+       
         $this->assertEquals('App\Entity\User',get_class($task->getUser()));
     }
+
+
 
 }
