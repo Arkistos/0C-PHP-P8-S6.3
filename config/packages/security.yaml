@@ -22,7 +22,7 @@ security:
                 always_use_default_target_path:  true
                 default_target_path:  /
             logout: ~
-
+            access_denied_handler: App\Security\AccessDeniedHandler
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
@@ -34,6 +34,8 @@ security:
     access_control:
         - { path: ^/tasks/create, roles: ROLE_USER }
         - { path: ^/users, roles: ROLE_ADMIN }
+    
+
 
 when@test:
     security:
