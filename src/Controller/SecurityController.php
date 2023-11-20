@@ -9,11 +9,10 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    #[Route('/login', name: 'login')]
+    #[Route('/login', name: 'login', methods:['GET', 'POST'])]
     public function index(
         AuthenticationUtils $authenticationUtils
-    ): Response
-    {
+    ): Response {
         $error = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
 
@@ -23,12 +22,12 @@ class SecurityController extends AbstractController
         ));
     }
 
-    #[Route('/logincheck', name: 'login_check')]
-    public function check(){
+    #[Route('/logincheck', name: 'login_check', methods:[])]
+    public function check(): void
+    {
     }
-    #[Route('/logout', name: 'logout')]
-    public function logout(){
+    #[Route('/logout', name: 'logout', methods:[])]
+    public function logout(): void
+    {
     }
 }
-
-

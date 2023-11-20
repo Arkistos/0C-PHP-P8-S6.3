@@ -33,20 +33,21 @@ class TaskVoter extends Voter
         // ... (check conditions and return true to grant permission) ...
         switch ($attribute) {
             case self::DELETE:
-                    return $this->canDelete($subject, $user);
+                return $this->canDelete($subject, $user);
                 break;
         }
 
         return false;
     }
 
-    private function canDelete(Task $task, User $user){
-        
-        if($user == $task->getUser()){
+    private function canDelete(Task $task, User $user): bool
+    {
+
+        if($user == $task->getUser()) {
             return true;
         }
 
-        if($user->isAdmin() && $task->getUser()->getUsername() == 'Anonyme'){
+        if($user->isAdmin() && $task->getUser()->getUsername() == 'Anonyme') {
             return true;
         }
 

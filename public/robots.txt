@@ -1,0 +1,8 @@
+User-agent: *
+Disallow:
+
+# Allow all content to be indexed
+Allow: /$
+Allow: /tasks/
+Allow: /login/
+Allow: /logout/
