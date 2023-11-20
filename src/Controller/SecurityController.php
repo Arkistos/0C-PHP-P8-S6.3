@@ -22,11 +22,11 @@ class SecurityController extends AbstractController
         ));
     }
 
-    #[Route('/logincheck', name: 'login_check', methods:[])]
+    #[Route('/logincheck', name: 'login_check', methods:['POST', 'GET'])]
     public function check(): void
     {
     }
-    #[Route('/logout', name: 'logout', methods:[])]
+    #[Route('/logout', name: 'logout', methods:['POST', 'GET'])]
     public function logout(): void
     {
     }

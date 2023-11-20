@@ -72,7 +72,7 @@ class TaskController extends AbstractController
         ]);
     }
 
-    #[Route('/tasks/{id}/toggle', name: 'task_toggle', methods:['GET'])]
+    #[Route('/tasks/{id}/toggle', name: 'task_toggle', methods:['GET', 'PUT'])]
     public function toggleTaskAction(
         Task $task,
         EntityManagerInterface $em
@@ -85,7 +85,7 @@ class TaskController extends AbstractController
         return $this->redirectToRoute('task_list');
     }
 
-    #[Route('/tasks/{id}/delete', name: 'task_delete', methods:['GET'])]
+    #[Route('/tasks/{id}/delete', name: 'task_delete', methods:['GET', 'PUT'])]
     #[IsGranted('delete', 'task')]
     public function deleteTaskAction(
         Task $task,
