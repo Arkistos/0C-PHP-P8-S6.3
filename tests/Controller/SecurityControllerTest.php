@@ -15,15 +15,12 @@ use Symfony\Component\HttpFoundation\Request;
 class SecurityControllerTest extends WebTestCase
 {
     private KernelBrowser|null $client = null;
-    private Crawler|null $crawler = null;
     protected ?AbstractDatabaseTool $databaseTool=null;
 
 
     public function setUp(): void
     {
         $this->client = static::createClient();
-        $urlGenerator = $this->client->getContainer()->get('router.default');
-        $this->crawler = $this->client->request(Request::METHOD_GET, $urlGenerator->generate('login'));
 
         $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
         $this->databaseTool->loadFixtures([
@@ -34,7 +31,8 @@ class SecurityControllerTest extends WebTestCase
 
     public function testLogin()
     {
-        $form = $this->crawler->selectButton('Se connecter')->form();
+        $crawler = $this->client->request('GET', '/login');
+        $form = $crawler->selectButton('Se connecter')->form();
         $form['_username']= 'Admin';
         $form['_password']= 'password';
         $this->client->submit($form);
@@ -46,13 +44,15 @@ class SecurityControllerTest extends WebTestCase
 
     public function testLoginFailWithBadCredentials()
     {
-        $form = $this->crawler->selectButton('Se connecter')->form();
+        $crawler = $this->client->request('GET', '/login');
+        $form = $crawler->selectButton('Se connecter')->form();
         $form['_username']= 'Admin';
         $form['_password']= 'wrong password';
         $this->client->submit($form);
 
         $this->client->followRedirect();
         $this->assertSelectorTextContains('div.alert.alert-danger', 'Invalid credentials.');
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/login');
     }
 
     public function testLogout(){
@@ -68,5 +68,6 @@ class SecurityControllerTest extends WebTestCase
     {
         parent::tearDown();
         unset($this->databaseTool);
+        unset($this->client);
     }
 }

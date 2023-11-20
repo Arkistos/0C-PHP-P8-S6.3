@@ -13,13 +13,11 @@ class DefaultControllerTest extends WebTestCase
     public function setUp():void
     {
         $this->client = static::createClient();
-        $urlGenerator = $this->client->getContainer()->get('router.default');
     }
 
     public function testpage(){
-        $urlGenerator = $this->client->getContainer()->get('router.default');
-        $this->client->request(Request::METHOD_GET, $urlGenerator->generate('homepage'));
+        $this->client->request(Request::METHOD_GET, '/');
 
-        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+        $this->assertResponseStatusCodeSame(200);
     }
 }

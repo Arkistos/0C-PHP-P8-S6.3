@@ -10,6 +10,7 @@ use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\BrowserKit\Exception\LogicException;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -51,6 +52,42 @@ class TaskControllerTest extends WebTestCase
         $this->client->submit($form);
         $this->client->followRedirect();
         $this->assertSelectorTextContains('div.alert.alert-success', 'La tâche a été bien été ajoutée.');
+    }
+
+    public function testCreateNotLogged(){
+        $this->client->request('GET', '/tasks/create');
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/login');
+    }
+
+    public function testCreateWithoutTitle()
+    {
+        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
+        $this->client->loginUser($testUser);
+        $crawler  = $this->client->request('GET', '/tasks/create');
+        $this->assertResponseStatusCodeSame(200);
+        $form = $crawler->selectButton('Ajouter')->form();
+        $form['task[content]'] = 'testContent';
+        $this->client->submit($form);
+        $this->expectException(LogicException::class);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/tasks/create');
+    }
+
+    public function testCreateWithoutContent()
+    {
+        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
+        $this->client->loginUser($testUser);
+        $crawler  = $this->client->request('GET', '/tasks/create');
+        $this->assertResponseStatusCodeSame(200);
+        $form = $crawler->selectButton('Ajouter')->form();
+        $form['task[title]'] = 'testTitle';
+        $this->client->submit($form);
+        $this->expectException(LogicException::class);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/tasks/create');
     }
 
     public function testEdit(){
