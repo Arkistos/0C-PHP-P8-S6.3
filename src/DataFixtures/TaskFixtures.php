@@ -4,10 +4,9 @@ namespace App\DataFixtures;
 
 use App\Entity\Task;
 use App\Entity\User;
-use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Persistence\ObjectManager;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Persistence\ObjectManager;
 
 class TaskFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -19,19 +18,21 @@ class TaskFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
     }
 
-    private function makeTask(string $title, string $content, string $username):Task{
+    private function makeTask(string $title, string $content, string $username): Task
+    {
         $task = new Task();
         $task->setTitle($title);
         $task->setContent($content);
-        $task->setCreatedAt(new DateTime());
+        $task->setCreatedAt(new \DateTime());
         $task->setDone(false);
         $task->setUser($this->getReference($username, User::class));
 
         return $task;
     }
 
-    public function getDependencies(){
-        return[
+    public function getDependencies()
+    {
+        return [
             UserFixtures::class,
         ];
     }

@@ -25,11 +25,11 @@ class UserFixtures extends Fixture
     }
 
     private function makeUser(
-        string $username, 
-        string $password, 
-        string $email, 
+        string $username,
+        string $password,
+        string $email,
         array $roles
-    ):User{
+    ): User {
         $user = new User();
         $user->setUsername($username);
         $user->setPassword($this->passwordHasher->hashPassword($user, $password));

@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
-    #[Route('/users', name: 'user_list', methods:['GET'])]
+    #[Route('/users', name: 'user_list', methods: ['GET'])]
     public function listAction(
         UserRepository $userRepository
     ): Response {
@@ -23,7 +23,7 @@ class UserController extends AbstractController
         return $this->render('user/list.html.twig', ['users' => $users]);
     }
 
-    #[Route('/users/create', name: 'user_create', methods:['GET', 'POST'])]
+    #[Route('/users/create', name: 'user_create', methods: ['GET', 'POST'])]
     public function createAction(
         Request $request,
         EntityManagerInterface $em,
@@ -49,7 +49,7 @@ class UserController extends AbstractController
         return $this->render('user/create.html.twig', ['form' => $form]);
     }
 
-    #[Route('/users/{id}/edit', name: 'user_edit', methods:['GET', 'POST'])]
+    #[Route('/users/{id}/edit', name: 'user_edit', methods: ['GET', 'POST'])]
     public function editAction(
         User $user,
         Request $request,

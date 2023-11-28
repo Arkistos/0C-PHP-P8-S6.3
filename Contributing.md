@@ -18,10 +18,10 @@ git checkout -b nom-de-la-fonctionnalité
 ``` 
 
 5. Effectuer des modifications
-Apportez vos modifications au code. N'oubliez pas de suivre les bonnes pratiques de codage.
+Apportez vos modifications au code. N'oubliez pas de suivre les bonnes pratiques de codage et les règles PSR12.
 
 6. Tests
-Si vous ajoutez une nouvelle fonctionnalité, assurez-vous d'ajouter des tests correspondants. Exécutez les tests existants pour vous assurer que tout fonctionne correctement:
+Si vous ajoutez une nouvelle fonctionnalité, assurez-vous d'ajouter des tests correspondants, le code coverage doit être au minimum à 70%. Exécutez les tests existants pour vous assurer que tout fonctionne correctement:
 ```bash
 php bin/phpunit
 ``` 
