@@ -1,4 +1,4 @@
-# ToDo & Co \n
+# ToDo & Co
 
 Bienvenue dans ToDo & Co, un projet Symfony de gestion de tâches et de listes de choses à faire. Ce document vous guidera à travers le processus d'installation du projet sur votre machine locale.
 
