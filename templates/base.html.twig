@@ -40,7 +40,9 @@
             <div class="row">
                 {% if app.user %}
                 {% block user_list %}
+                    {% if app.user.isAdmin %}
                     <a href="{{ path('user_list') }}" class="btn btn-primary">Liste des utilisateurs</a>
+                    {% endif %}
                 {% endblock user_list %}
                 
 

@@ -4,6 +4,7 @@ namespace App\Tests\Controller;
 
 use App\DataFixtures\TaskFixtures;
 use App\DataFixtures\UserFixtures;
+use App\Entity\User;
 use App\Repository\UserRepository;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
@@ -14,31 +15,43 @@ class UserControllerTest extends WebTestCase
 {
     private KernelBrowser|null $client = null;
     private UserRepository|null $userRepository = null;
-    protected ?AbstractDatabaseTool $databaseTool=null;
+    protected ?AbstractDatabaseTool $databaseTool = null;
+    private User|null $roleAdmin = null;
+    private User|null $roleUser = null;
 
-    public function setUp():void{
+    public function setUp(): void
+    {
         $this->client = static::createClient();
         $this->userRepository = static::getContainer()->get(UserRepository::class);
 
         $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
         $this->databaseTool->loadFixtures([
             UserFixtures::class,
-            TaskFixtures::class
+            TaskFixtures::class,
         ]);
+        $this->roleAdmin = $this->userRepository->findOneByEmail('email@admin.com');
+        $this->roleUser = $this->userRepository->findOneByEmail('email@user.com');
     }
 
     public function testListUsers(): void
     {
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
-        $this->client->loginUser($testUser);
+        $this->client->loginUser($this->roleAdmin);
         $this->client->request('GET', '/users');
         $this->assertResponseStatusCodeSame(200);
     }
 
+    public function testListUsersCantBeAccessByRoleUser(): void
+    {
+        $this->client->loginUser($this->roleUser);
+        $this->client->request('GET', '/users');
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/login');
+    }
+
     public function testUserCreate(): void
     {
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
-        $this->client->loginUser($testUser);
+        $this->client->loginUser($this->roleAdmin);
         $crawler = $this->client->request('GET', '/users/create');
         $this->assertResponseStatusCodeSame(200);
         $form = $crawler->selectButton('Ajouter')->form();
@@ -55,9 +68,8 @@ class UserControllerTest extends WebTestCase
 
     public function testUserEdit(): void
     {
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
-        $this->client->loginUser($testUser);
-        $crawler = $this->client->request('GET', '/users/'.$testUser->getId().'/edit');
+        $this->client->loginUser($this->roleAdmin);
+        $crawler = $this->client->request('GET', '/users/'.$this->roleAdmin->getId().'/edit');
         $this->assertResponseStatusCodeSame(200);
         $form = $crawler->selectButton('Modifier')->form();
         $form['user[username]'] = 'testNewUsername';
