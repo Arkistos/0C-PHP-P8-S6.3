@@ -144,4 +144,48 @@ class TaskControllerTest extends WebTestCase
         $this->client->followRedirect();
         $this->assertResponseStatusCodeSame(200);
     }
+
+    public function testUsersCanOnlyDeleteTheirOwnTasks()
+    {
+        $testTask = $this->taskRepository->findOneByTitle('Task by User');
+        $this->client->loginUser($this->roleAdmin);
+        $this->client->request('GET', '/tasks/'.$testTask->getId().'/delete');
+
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/login');
+        $testTaskNotDelete = $this->taskRepository->findOneByTitle('Task by User');
+        $this->assertEquals($testTaskNotDelete->getTitle(), $testTask->getTitle());
+
+        $this->client->loginUser($this->roleUser);
+        $this->client->request('GET', '/tasks/'.$testTask->getId().'/delete');
+
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/tasks');
+        $testTaskDelete = $this->taskRepository->findOneByTitle('Task by User');
+        $this->assertNull($testTaskDelete);
+    }
+
+    public function testOnlyAdminCanDeleteAnonymousTasks()
+    {
+        $anonymousTask = $this->taskRepository->findOneByTitle('testAnonymous');
+        $this->client->loginUser($this->roleUser);
+
+        $this->client->request('GET', '/tasks/'.$anonymousTask->getId().'/delete');
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/login');
+        $taskNotDelete = $this->taskRepository->findOneByTitle('testAnonymous');
+        $this->assertEquals($anonymousTask->getTitle(), $taskNotDelete->getTitle());
+
+        $this->client->loginUser($this->roleAdmin);
+
+        $this->client->request('GET', '/tasks/'.$anonymousTask->getId().'/delete');
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/tasks');
+        $taskDeleted = $this->taskRepository->findOneByTitle('testAnonymous');
+        $this->assertNull($taskDeleted);
+    }
 }
