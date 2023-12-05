@@ -14,7 +14,7 @@ class TaskFixtures extends Fixture implements DependentFixtureInterface
     {
         $this->makeTask('Task 1', 'This is a task', 'Admin', $manager);
         $this->makeTask('testAnonymous', 'This is a test task to try anonymous', 'Anonyme', $manager);
-
+        $this->makeTask('Task by User', 'I want to test a task created by role User', 'User', $manager);
         $manager->flush();
     }
 
