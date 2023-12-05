@@ -4,6 +4,7 @@ namespace App\Tests\Controller;
 
 use App\DataFixtures\TaskFixtures;
 use App\DataFixtures\UserFixtures;
+use App\Entity\User;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
@@ -12,15 +13,18 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\BrowserKit\Exception\LogicException;
 use Symfony\Component\DomCrawler\Crawler;
-use Symfony\Component\HttpFoundation\Request;
+
+use function PHPUnit\Framework\assertEquals;
 
 class TaskControllerTest extends WebTestCase
 {
     private KernelBrowser|null $client = null;
     private Crawler|null $crawler = null;
     private UserRepository|null $userRepository = null;
-    private TaskRepository|null $taskRepository =null;
-    protected ?AbstractDatabaseTool $databaseTool=null;
+    private TaskRepository|null $taskRepository = null;
+    protected ?AbstractDatabaseTool $databaseTool = null;
+    private User|null $roleAdmin = null;
+    private User|null $roleUser = null;
 
     public function setUp(): void
     {
@@ -30,8 +34,10 @@ class TaskControllerTest extends WebTestCase
         $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
         $this->databaseTool->loadFixtures([
             UserFixtures::class,
-            TaskFixtures::class
+            TaskFixtures::class,
         ]);
+        $this->roleAdmin = $this->userRepository->findOneByEmail('email@admin.com');
+        $this->roleUser = $this->userRepository->findOneByEmail('email@user.com');
     }
 
     public function testDisplayTaskList()
@@ -42,19 +48,19 @@ class TaskControllerTest extends WebTestCase
 
     public function testCreate()
     {
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
-        $this->client->loginUser($testUser);
-        $crawler  = $this->client->request('GET', '/tasks/create');
+        $this->client->loginUser($this->roleAdmin);
+        $crawler = $this->client->request('GET', '/tasks/create');
         $this->assertResponseStatusCodeSame(200);
         $form = $crawler->selectButton('Ajouter')->form();
-        $form['task[title]']='testTitle';
+        $form['task[title]'] = 'testTitle';
         $form['task[content]'] = 'testContent';
         $this->client->submit($form);
         $this->client->followRedirect();
         $this->assertSelectorTextContains('div.alert.alert-success', 'La tâche a été bien été ajoutée.');
     }
 
-    public function testCreateNotLogged(){
+    public function testCreateNotLogged()
+    {
         $this->client->request('GET', '/tasks/create');
         $this->assertResponseStatusCodeSame(302);
         $this->client->followRedirect();
@@ -64,9 +70,8 @@ class TaskControllerTest extends WebTestCase
 
     public function testCreateWithoutTitle()
     {
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
-        $this->client->loginUser($testUser);
-        $crawler  = $this->client->request('GET', '/tasks/create');
+        $this->client->loginUser($this->roleAdmin);
+        $crawler = $this->client->request('GET', '/tasks/create');
         $this->assertResponseStatusCodeSame(200);
         $form = $crawler->selectButton('Ajouter')->form();
         $form['task[content]'] = 'testContent';
@@ -78,9 +83,8 @@ class TaskControllerTest extends WebTestCase
 
     public function testCreateWithoutContent()
     {
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
-        $this->client->loginUser($testUser);
-        $crawler  = $this->client->request('GET', '/tasks/create');
+        $this->client->loginUser($this->roleAdmin);
+        $crawler = $this->client->request('GET', '/tasks/create');
         $this->assertResponseStatusCodeSame(200);
         $form = $crawler->selectButton('Ajouter')->form();
         $form['task[title]'] = 'testTitle';
@@ -90,14 +94,14 @@ class TaskControllerTest extends WebTestCase
         $this->assertEquals($this->client->getRequest()->getPathInfo(), '/tasks/create');
     }
 
-    public function testEdit(){
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
+    public function testEdit()
+    {
         $testTask = $this->taskRepository->findOneByTitle('Task 1');
-        $this->client->loginUser($testUser);
+        $this->client->loginUser($this->roleAdmin);
         $crawler = $this->client->request('GET', '/tasks/'.$testTask->getId().'/edit');
 
         $form = $crawler->selectButton('Modifier')->form();
-        $form['task[title]']='testNewTitle';
+        $form['task[title]'] = 'testNewTitle';
         $form['task[content]'] = 'testNewContent';
         $this->client->submit($form);
         $this->client->followRedirect();
@@ -106,21 +110,82 @@ class TaskControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
     }
 
-    public function testToggle(){
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
+    public function testEditWontChangeUserRelated()
+    {
         $testTask = $this->taskRepository->findOneByTitle('Task 1');
-        $this->client->loginUser($testUser);
+        $this->client->loginUser($this->roleUser);
+        $crawler = $this->client->request('GET', '/tasks/'.$testTask->getId().'/edit');
+        $form = $crawler->selectButton('Modifier')->form();
+        $form['task[title]'] = 'testNewTitle';
+        $form['task[content]'] = 'testNewContent';
+        $this->client->submit($form);
+        $this->client->followRedirect();
+
+        $testTaskUpdate = $this->taskRepository->findOneByTitle('testNewTitle');
+
+        assertEquals('testNewTitle', $testTaskUpdate->getTitle());
+        assertEquals($this->roleAdmin->getUsername(), $testTaskUpdate->getUser()->getUsername());
+    }
+
+    public function testToggle()
+    {
+        $testTask = $this->taskRepository->findOneByTitle('Task 1');
+        $this->client->loginUser($this->roleAdmin);
         $this->client->request('GET', '/tasks/'.$testTask->getId().'/toggle');
         $this->client->followRedirect();
         $this->assertResponseStatusCodeSame(200);
     }
 
-    public function testDelete(){
-        $testUser = $this->userRepository->findOneByEmail('email@admin.com');
+    public function testDelete()
+    {
         $testTask = $this->taskRepository->findOneByTitle('Task 1');
-        $this->client->loginUser($testUser);
+        $this->client->loginUser($this->roleAdmin);
         $this->client->request('GET', '/tasks/'.$testTask->getId().'/delete');
         $this->client->followRedirect();
         $this->assertResponseStatusCodeSame(200);
+    }
+
+    public function testUsersCanOnlyDeleteTheirOwnTasks()
+    {
+        $testTask = $this->taskRepository->findOneByTitle('Task by User');
+        $this->client->loginUser($this->roleAdmin);
+        $this->client->request('GET', '/tasks/'.$testTask->getId().'/delete');
+
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/login');
+        $testTaskNotDelete = $this->taskRepository->findOneByTitle('Task by User');
+        $this->assertEquals($testTaskNotDelete->getTitle(), $testTask->getTitle());
+
+        $this->client->loginUser($this->roleUser);
+        $this->client->request('GET', '/tasks/'.$testTask->getId().'/delete');
+
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/tasks');
+        $testTaskDelete = $this->taskRepository->findOneByTitle('Task by User');
+        $this->assertNull($testTaskDelete);
+    }
+
+    public function testOnlyAdminCanDeleteAnonymousTasks()
+    {
+        $anonymousTask = $this->taskRepository->findOneByTitle('testAnonymous');
+        $this->client->loginUser($this->roleUser);
+
+        $this->client->request('GET', '/tasks/'.$anonymousTask->getId().'/delete');
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/login');
+        $taskNotDelete = $this->taskRepository->findOneByTitle('testAnonymous');
+        $this->assertEquals($anonymousTask->getTitle(), $taskNotDelete->getTitle());
+
+        $this->client->loginUser($this->roleAdmin);
+
+        $this->client->request('GET', '/tasks/'.$anonymousTask->getId().'/delete');
+        $this->assertResponseStatusCodeSame(302);
+        $this->client->followRedirect();
+        $this->assertEquals($this->client->getRequest()->getPathInfo(), '/tasks');
+        $taskDeleted = $this->taskRepository->findOneByTitle('testAnonymous');
+        $this->assertNull($taskDeleted);
     }
 }
