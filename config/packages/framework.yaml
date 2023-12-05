@@ -21,6 +21,9 @@ framework:
         log: true
 
 when@test:
+    _errors:
+        resource: '@FrameworkBundle/Resources/config/routing/errors.xml'
+        prefix:   /_error
     framework:
         test: true
         session:
