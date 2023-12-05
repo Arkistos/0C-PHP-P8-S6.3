@@ -4,6 +4,10 @@
 
 {% block header_title %}<h1>Liste des utilisateurs</h1>{% endblock %}
 
+{% block user_list %}
+<a href="{{ path('user_create') }}" class="btn btn-primary">Créer un utilisateur</a>
+{% endblock user_list %} 
+
 {% block body %}
     {% if users|length == 0 %}
         <div class="alert alert-warning" role="alert">

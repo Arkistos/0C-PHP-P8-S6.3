@@ -12,13 +12,13 @@ class TaskFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
-        $task = $this->makeTask('Task 1', 'This is a task', 'Admin');
-        $manager->persist($task);
+        $this->makeTask('Task 1', 'This is a task', 'Admin', $manager);
+        $this->makeTask('testAnonymous', 'This is a test task to try anonymous', 'Anonyme', $manager);
 
         $manager->flush();
     }
 
-    private function makeTask(string $title, string $content, string $username): Task
+    private function makeTask(string $title, string $content, string $username, ObjectManager $manager): void
     {
         $task = new Task();
         $task->setTitle($title);
@@ -27,7 +27,7 @@ class TaskFixtures extends Fixture implements DependentFixtureInterface
         $task->setDone(false);
         $task->setUser($this->getReference($username, User::class));
 
-        return $task;
+        $manager->persist($task);
     }
 
     public function getDependencies()

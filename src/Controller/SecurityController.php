@@ -10,7 +10,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class SecurityController extends AbstractController
 {
     #[Route('/login', name: 'login', methods: ['GET', 'POST'])]
-    public function index(
+    public function login(
         AuthenticationUtils $authenticationUtils
     ): Response {
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -19,7 +19,8 @@ class SecurityController extends AbstractController
         return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
-        ]);
+            ]
+        );
     }
 
     #[Route('/logincheck', name: 'login_check', methods: ['POST', 'GET'])]
